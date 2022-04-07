@@ -1,0 +1,21 @@
+Note: à faire
+
+
+
+Exercice 1
+1/ Complexité O(p-3)
+
+--> A Revoir
+2/ nb premier: 301793 en 0.002039s
+  nb premier: 244861 en 0.002009s
+
+3/ Complexité O(m);
+
+--> A Revoir
+7/ ((p-3)  k) * (3/4)^k * (1/4)^(n-k)
+
+
+Questions: 
+decrypt: différence malloc et message[qqc]
+--> si allocation statique, variable locale
+generate_key_value: ligne 125 pk pas *v

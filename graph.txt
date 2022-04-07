@@ -1,0 +1,4 @@
+plot "T_modpow_n.txt" using 1:2 title "Modpow naïf" with lines
+replot "T_modpow.txt" using 1:2 title "Modpow" with lines
+set term postscript portait
+set size 0.5, 0.5
