@@ -17,7 +17,7 @@ void ecrire_block(char *nom, Block *block);
 Block *lire_block(char *nom);
 char *block_to_char(Block *block);
 void test_sha(const char *s);
-unsigned char* str_to_SHA256(char* str);
+unsigned char* str_to_SHA256(const char* str);
 
 
 #endif

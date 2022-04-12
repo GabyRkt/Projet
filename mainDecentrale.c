@@ -43,8 +43,13 @@ int main(){
   printf("\n b to c l:\n%s\n",char_bl);
 
   printf("-----------------SHA256-----------------\n");
-  test_sha("Rosetta code\n");
-  printf("%s\n",str_to_SHA256("Rosetta code"));
+  test_sha("Rosetta code");
+  
+  unsigned char*s=str_to_SHA256("Rosetta code");
+  for(int i=0;i<SHA256_DIGEST_LENGTH;i++){
+    printf("%02x",s[i]);
+  }
+  putchar("\n");
 
   free(pk);
   free(sk);
