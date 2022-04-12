@@ -8,15 +8,15 @@ PROGRAMS = mainCrypto calcul mainSecure mainCentrale mainDecentrale
 all: $(PROGRAMS)
 
 mainCrypto: mainCrypto.o  crypto.o -lm
-	$(CC) -o $@ $(CFLAGS) $^
+	$(CC) -o $@ $(CFLAGS) $^ 
 
 mainSecure: mainSecure.o  secure.o crypto.o -lm
-	$(CC) -o $@ $(CFLAGS) $^
+	$(CC) -o $@ $(CFLAGS) $^ 
 
 mainCentrale: mainCentrale.o centrale.o secure.o crypto.o -lm
 	$(CC) -o $@ $(CFLAGS) $^
 
-mainDecentrale: mainDecentrale.o centrale.o secure.o crypto.o decentrale.o -lm
+mainDecentrale: mainDecentrale.o decentrale.o centrale.o secure.o crypto.o -lm -lssl -lcrypto
 	$(CC) -o $@ $(CFLAGS) $^
 
 calcul: calcul.o  crypto.o -lm
@@ -33,6 +33,7 @@ centrale.o: centrale.c
 
 decentrale.o: decentrale.c 
 	$(CC) -c $(CFLAGS) decentrale.c 
+
 
 clean:
 	rm -f *.o *~ $(PROGRAMS)

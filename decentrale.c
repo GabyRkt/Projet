@@ -134,5 +134,9 @@ void test_sha(const char *s){
 }
 
 unsigned char* str_to_SHA256(char* str){
-  return  SHA256(str,strlen(str),0); 
+  unsigned char *s= SHA256(str,strlen(str),0); 
+  unsigned char*sha;
+  for(int i=0;i<SHA256_DIGEST_LENGTH;i++){
+    
+  }
 }
