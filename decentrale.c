@@ -74,7 +74,7 @@ Block *lire_block(char *nom){
       block->votes->data=str_to_protected(buffer);
       add_protect(&cp,block->votes->data);
       printf("%s %s %s\n",key_to_str(block->votes->data->pKey), block->votes->data->mess,signature_to_str(block->votes->data->sgn));
-
+      // block->votes->data=block->votes->next->data;
       }
       
   }
