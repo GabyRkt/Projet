@@ -32,13 +32,14 @@ void ecrire_block(char *nom, Block *block){
     fprintf(f,"%s %s %s %d\n",cle, block->hash, block->previous_hash, block->nonce);
     free(cle);
     
-    while(votes){
+    while(votes->data){
       protect = protected_to_str(votes->data);
       fprintf(f,"%s\n",protect);
       votes=votes->next;
       free(protect);
     }
   }
+  fclose(f);
 }
 
 Block *lire_block(char *nom){
@@ -57,19 +58,27 @@ Block *lire_block(char *nom){
   int nonce; 
   
   Block *block=(Block*)(malloc(sizeof(Block)));
+  CellProtected* cp=create_cell_protected(NULL);
+  block->votes=cp;
+  
   while(fgets(buffer,256,f)){
-    if(sscanf(buffer,"%s %s %s %d\n",cle,hash,previous_hash,&nonce)==4){
+    if (sscanf(buffer,"%s %s %s %d\n",cle,hash,previous_hash,&nonce)==4){
       block->author=str_to_key(cle);
       block->hash=(unsigned char*)strdup(hash);
       block->previous_hash=(unsigned char*)strdup(previous_hash);
       block->nonce=nonce;
-    }
+      }
+
     else{
-      sscanf(buffer,"%s\n",protect);
-      block->votes->data=str_to_protected(protect);
-      block->votes=block->votes->next;
-    }
+      printf("protect: %s\n",buffer);
+      block->votes->data=str_to_protected(buffer);
+      add_protect(&cp,block->votes->data);
+      printf("%s %s %s\n",key_to_str(block->votes->data->pKey), block->votes->data->mess,signature_to_str(block->votes->data->sgn));
+
+      }
+      
   }
+  fclose(f);
   return block;
 }
 
@@ -77,19 +86,19 @@ char *block_to_char(Block *block){
   char *blk=key_to_str(block->author);
   char *hsh=(char*)(malloc(sizeof(char)*2048));
   char *protect=(char*)(malloc(sizeof(char)*2048));
-  protect ="";
+  // protect ="";
   char *tmp;
-  while(block->votes){
+
+  while(block->votes->data){
+    
     tmp=protected_to_str(block->votes->data);
     strcat(protect,tmp);
-    strcat(protect," ");
+    strcat(protect,"\n");
     block->votes=block->votes->next;
     free(tmp);
   }
-  //strcat(blk," ");
-  sprintf(hsh, "%s %s %s %d", blk, block->previous_hash,protect, block->nonce);
-  //strcat(blk,(char*)block->previous_hash);
-  //strcat(blk," ");
+
+  sprintf(hsh, "%s %s %d \n%s", blk, block->previous_hash,block->nonce,protect);
   free(protect);
   free(blk);
 

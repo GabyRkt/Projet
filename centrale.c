@@ -80,7 +80,7 @@ void delete_list_key(CellKey* cell){
   }
 }
 
-//Création d'une liste de céclaration
+//Création d'une liste de déclaration
 CellProtected *create_cell_protected(Protected *pr){
   CellProtected *cellp=(CellProtected*)(malloc(sizeof(CellProtected)));
   if(cellp==NULL){
