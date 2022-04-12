@@ -55,18 +55,28 @@ int main(){
   CellProtected *cp1=NULL;
   unsigned char *ph=NULL;
 
-  Block* b=creer_block(pk,cp1,ph,2);
-  Block* b1=creer_block(pk,cp1,ph,2);
-  Block* b2=creer_block(pk,cp1,ph,2);
+  Block* b=creer_block(pk,cp1,ph,0);
+  Block* b1=creer_block(pk,cp1,ph,0);
+  Block* b2=creer_block(pk,cp1,ph,0);
+  Block* bf=creer_block(pk,cp1,ph,0);
 
+
+  // b->hash="1eff3ff3";
+  // b1->hash="1e3e2ff3";
+  // b2->hash="1efe3ff3";
+  
   CellTree*c= create_node(b);
   CellTree*c1= create_node(b1);
   CellTree*c2= create_node(b2);
+  CellTree*cf= create_node(bf);
+
+
+  // printf("here\n");
 
   add_child(c,c1);
   add_child(c,c2);
-
-  print
+  add_child(c1,cf);
+  print_tree(c);
 
 
 

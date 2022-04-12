@@ -193,7 +193,7 @@ CellTree *create_node(Block*b){
   tree->firstChild=NULL;
   tree->nextBro=NULL;
   tree->height=0;
-  return b;
+  return tree;
 }
 
 int update_height(CellTree *father, CellTree *child){
@@ -207,15 +207,20 @@ int update_height(CellTree *father, CellTree *child){
 }
 
 void add_child(CellTree *father, CellTree* child){
-  if(father->firstChild==NULL){
+  CellTree *first=father->firstChild;
+  if(first==NULL/*||first->block*/){
+    printf("first null\n");
     father->firstChild=child;
-    update_height(father,child);
   }
   else{
-    while(father->firstChild){
-      father->firstChild=father->firstChild->nextBro;
+    //printf("%s\n",father->firstChild->block->hash);
+    while(first->nextBro){
+      printf("next bro\n");
+      first=first->nextBro;
     }
-    father->firstChild=child;
+    first->nextBro=child;
+
+  }
     child->father=father;
     update_height(father,child);
     CellTree *pere=father;
@@ -224,44 +229,84 @@ void add_child(CellTree *father, CellTree* child){
       update_height(pere->father,pere);
       pere=pere->father;
     }
-  }
 }
+
+
 
 void print_tree(CellTree *boss){
   //PAS DE PERE
   printf("[%d,%s]\n",boss->height,boss->block->hash);
+  printf("papa\n");
   
   while(boss->firstChild){
     printf(" ");
     print_tree(boss->firstChild);
     boss->firstChild=boss->firstChild->nextBro;
   }
-  while(boss->nextBro){
-    print_tree(boss->nextBro);
-    boss=boss->nextBro;  
+
+  if(boss->father==NULL){
+    while(boss->nextBro){
+      print_tree(boss->nextBro);
+      boss=boss->nextBro;  
+    }
   }
 } 
 
 void delete_node(CellTree *node){
-  delete_block(node->block);
-  free(node);
+  if(node){
+    delete_block(node->block);
+    free(node);
+  }
 }
 
 void delete_tree(CellTree *tree){
   if(tree){
-    delete_tree(tree->father);
     delete_tree(tree->firstChild);
     delete_tree(tree->nextBro);
     delete_node(tree);
   }
 }
 
-/*
 CellTree *highest_child(CellTree *cell){
-  int max=cell->fistChild->height;
-  while(firstChild){
-    if(max<firstChild->height){
-
+  CellTree *maxTree = cell->firstChild;
+  CellTree *first = cell->firstChild;
+  while(first){
+    if(maxTree->height<first->height){
+      maxTree=first;
     }
+    first=first->nextBro;
   }
-}*/
+  return maxTree;
+}
+
+CellTree *last_node(CellTree *tree){
+  CellTree *block_node=tree;
+  while(block_node->firstChild){
+    block_node=highest_child(block_node);
+  }
+  return block_node;
+}
+
+void fusio_protect(CellProtected *cell, CellProtected *cellp){
+  if(cellp==NULL){
+    return;
+  }
+
+  if(cell==NULL){
+    while(cellp){
+      cell->data=create_cell_protected(cellp->data);
+      cell=cell->next;
+    }
+    delete_list_protect(cellp);
+    return;
+  }
+
+  while(cell->next){
+    cell=cell->next;
+  }
+  while(cellp){
+    cell->next->data=create_cell_protected(cellp->data);
+    cellp=cellp->next;
+    cell=cell->next;
+  }
+}
