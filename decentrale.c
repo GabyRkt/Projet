@@ -136,3 +136,132 @@ void test_sha(const char *s){
 unsigned char* str_to_SHA256(const char* str){
   return SHA256(str,strlen(str),0); 
 }
+
+void compute_proof_of_work(Block *b, int d){
+  int nonce=0;
+  int ok=1;
+  unsigned char *previous_hash=b->previous_hash;
+  unsigned char *sha=previous_hash;
+
+  while(ok){
+    printf("hihihhhhihihh\n");
+    for(int i=0;i<d;i++){
+      if(sha==NULL){
+        break;
+      }
+      if(sha[i]){
+        break;
+      }
+      if(sha[i]==0 && d==i+1){
+        ok=0;
+        printf("%02x\n",sha);
+        b->hash=sha;
+        b->previous_hash=previous_hash;
+        b->nonce=nonce;
+      }
+    }
+    if(ok){
+      previous_hash=sha;
+      sha=str_to_SHA256(previous_hash);
+      nonce++;
+    }
+  }
+}
+
+// Desallocation d'un block
+void delete_block(Block* b){
+  free(b->hash);
+  free(b->previous_hash);
+  CellProtected* tmp;
+
+  while(b->votes){
+    tmp=b->votes;
+    b->votes=b->votes->next;
+    free(tmp);
+  }
+}
+
+CellTree *create_node(Block*b){
+  CellTree *tree=(CellTree*)(malloc(sizeof(CellTree)));
+  if(tree==NULL){
+    printf("Erreur d'allocation\n");
+    return NULL;
+  }
+
+  tree->block=b;
+  tree->father=NULL;
+  tree->firstChild=NULL;
+  tree->nextBro=NULL;
+  tree->height=0;
+  return b;
+}
+
+int update_height(CellTree *father, CellTree *child){
+  if(father->height>child->height+1){
+    return 0;
+  }
+  else{
+    father->height=child->height+1;
+    return 1;
+  }
+}
+
+void add_child(CellTree *father, CellTree* child){
+  if(father->firstChild==NULL){
+    father->firstChild=child;
+    update_height(father,child);
+  }
+  else{
+    while(father->firstChild){
+      father->firstChild=father->firstChild->nextBro;
+    }
+    father->firstChild=child;
+    child->father=father;
+    update_height(father,child);
+    CellTree *pere=father;
+    
+    while(pere->father){
+      update_height(pere->father,pere);
+      pere=pere->father;
+    }
+  }
+}
+
+void print_tree(CellTree *boss){
+  //PAS DE PERE
+  printf("[%d,%s]\n",boss->height,boss->block->hash);
+  
+  while(boss->firstChild){
+    printf(" ");
+    print_tree(boss->firstChild);
+    boss->firstChild=boss->firstChild->nextBro;
+  }
+  while(boss->nextBro){
+    print_tree(boss->nextBro);
+    boss=boss->nextBro;  
+  }
+} 
+
+void delete_node(CellTree *node){
+  delete_block(node->block);
+  free(node);
+}
+
+void delete_tree(CellTree *tree){
+  if(tree){
+    delete_tree(tree->father);
+    delete_tree(tree->firstChild);
+    delete_tree(tree->nextBro);
+    delete_node(tree);
+  }
+}
+
+/*
+CellTree *highest_child(CellTree *cell){
+  int max=cell->fistChild->height;
+  while(firstChild){
+    if(max<firstChild->height){
+
+    }
+  }
+}*/
