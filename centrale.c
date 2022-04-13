@@ -353,7 +353,7 @@ void delete_hashtable(HashTable *t){
     hsh=t->tab[i];
     if(hsh){
       free(hsh);
-      //On ne désalloue pas la clé car on l'a désalloué avec delete_list_key
+      //On ne désalloue pas la clé car on l'a désalloué avec delete_list_key ou bien à part
     }
   }
   free(t->tab);

@@ -3,18 +3,19 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
 #include "decentrale.h"
 #include "centrale.h"
 #include "secure.h"
 #include "crypto.h"
 
-Block* creer_block(Key *k, CellProtected* votes, unsigned char *ph, int nonce){
+Block* creer_block(Key *k, CellProtected* votes, unsigned char *ph){
   Block* b=(Block*)(malloc(sizeof(Block)));
   b->author=k;
   b->votes=votes;
   b->hash=NULL;
   b->previous_hash=ph;
-  b->nonce=nonce;
+  b->nonce=0;
   return b;
 }
 
@@ -168,6 +169,11 @@ void compute_proof_of_work(Block *b, int d){
   }
 }
 
+int verify_block(Block* b, int d){
+  return 0;
+}
+
+
 // Desallocation d'un block
 void delete_block(Block* b){
   free(b->hash);
@@ -289,13 +295,14 @@ CellTree *last_node(CellTree *tree){
 
 void fusio_protect(CellProtected *cell, CellProtected *cellp){
   if(cellp==NULL){
+    delete_cell_protect(cellp);
     return;
   }
 
   if(cell==NULL){
     while(cellp){
-      cell->data=create_cell_protected(cellp->data);
-      cell=cell->next;
+      add_protect(cell,cellp->data);
+      cellp=cellp->next;
     }
     delete_list_protect(cellp);
     return;
@@ -305,8 +312,120 @@ void fusio_protect(CellProtected *cell, CellProtected *cellp){
     cell=cell->next;
   }
   while(cellp){
-    cell->next->data=create_cell_protected(cellp->data);
+    add_protect(cell,cellp->data);
     cellp=cellp->next;
-    cell=cell->next;
   }
+  delete_list_protect(cellp);
+}
+
+CellProtected *fusio_decla(CellTree *tree){
+  CellTree *last=last_node(tree);
+  CellTree *high=tree;
+  CellTree *first=tree;
+  CellProtected *res=create_cell_protected(NULL);
+  fusio_protect(res,high->block->votes);
+  
+  while(high!=last){
+    high=highest_child(first);
+    fusio_protect(res,high->block->votes);
+    first=high;
+  }
+  return res;
+}
+
+void submit_vote(Protected *p){
+  FILE *f=fopen("Pending_votes.txt","a");
+  if(f==NULL){
+    printf("Erreur lors de l'ouverture\n");
+    return;
+  }
+  char *decla=protected_to_str(p);
+  fprintf(f,"%s\n",decla);
+  free(decla);
+  fclose(f);
+}
+
+void create_block(CellTree *tree, Key *author, int d){
+  CellProtected *decla = read_protected("Pending_votes.txt");
+  CellTree *last=last_node(tree);
+  if(last!=NULL){
+    Block *block = creer_block(author, decla, last->hash);
+  }
+  else{
+    Block *block = creer_block(author, decla, NULL);
+  }
+
+  compute_proof_of_work(block, d);
+  ecrire_block("Pending_block",block);
+  remove("Pending_votes.txt");
+}
+
+void add_block(int d, char *name){
+  FILE *f=fopen("Pending_block","r");
+  if (f==NULL){
+      printf("Erreur dans l'ouverture du fichier.\n");
+      return;
+    }
+  Block *block=lire_block("Pending_block");
+  fclose(f);
+
+  if(verify_block(block,d)){
+    DIR *rep =opendir("./Blockchain/");
+    if (rep==NULL){
+      printf("Erreur dans l'ouverture du repertoire.\n");
+      return;
+    }
+    
+    f=fopen(name,"w");
+    if (f==NULL){
+      printf("Erreur dans l'ouverture du fichier.\n");
+      return;
+    }
+    ecrire_block(block);
+    fclose(f);
+    closedir(rep);
+  
+  }
+  delete_block(block);
+  remove("Pending_block");
+}
+
+CellTree *read_tree(){
+  CellTree **tab_tree=(CellTree**)(malloc(sizeof(CellTree)*100));
+  Block *block;
+  int i=0;
+  DIR *rep=opendir("./Blockchain/");
+  if(rep){
+    struct dirent *dir;
+    while((dir=readdir(rep))){
+      if(strcmp(dir->d_name,".") && strcmp(dire->d_name,"..")){
+        block = lire_block(dir->d_name);
+        tab_tree[i]=create_node(block);
+        i++;
+      }
+    }
+    closedir(rep);
+  }
+
+  for(int j=0;j<i;j++){
+    for(int k=0;k<i;k++){
+      if(T[j]->hash==T[k]->previous_hash){
+        add_child(T[j],T[k]);
+      }
+    }
+  }
+
+  for(int j=0;j<i;j++){
+    if(T[j]->father==NULL){
+      return T[j];
+    }
+  }
+}
+
+Key *compute_winner_BT(CellTree *tree, CellKey *candidates, CellKey *voters, int sizeC, int sizeV){
+  CellProtected *decla=fusio_decla(tree);
+  verify_protect(&decla);
+  Key *cle=compute_winner(decla,candidates,voters,sizeC,sizeV);
+
+  return cle;
 }

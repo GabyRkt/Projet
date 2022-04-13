@@ -1,7 +1,7 @@
 CFLAGS = -g -Wall -lm -Wextra -pedantic 
 CC = gcc
 
-PROGRAMS = mainCrypto calcul mainSecure mainCentrale mainDecentrale
+PROGRAMS = mainCrypto calcul mainSecure mainCentrale mainDecentrale main
 
 .PHONY:	all clean
 
@@ -17,6 +17,9 @@ mainCentrale: mainCentrale.o centrale.o secure.o crypto.o -lm
 	$(CC) -o $@ $(CFLAGS) $^
 
 mainDecentrale: mainDecentrale.o decentrale.o centrale.o secure.o crypto.o -lm -lssl -lcrypto
+	$(CC) -o $@ $(CFLAGS) $^
+
+main: main.o decentrale.o centrale.o secure.o crypto.o -lm -lssl -lcrypto
 	$(CC) -o $@ $(CFLAGS) $^
 
 calcul: calcul.o  crypto.o -lm

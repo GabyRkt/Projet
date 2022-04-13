@@ -27,11 +27,22 @@ char *block_to_char(Block *block);
 void test_sha(const char *s);
 unsigned char* str_to_SHA256(const char* str);
 void compute_proof_of_work(Block *b, int d);
+int verify_block(Block* b, int d);
 void delete_block(Block* b);
 
 CellTree *create_node(Block*b);
 int update_height(CellTree *father, CellTree *child);
 void add_child(CellTree *father, CellTree* child);
 void print_tree(CellTree *boss);
+void delete_node(CellTree *node);
+void delete_tree(CellTree *tree);
+
+CellTree *highest_child(CellTree *cell);
+CellTree *last_node(CellTree *tree);
+void fusio_protect(CellProtected *cell, CellProtected *cellp);
+CellProtected *fusio_decla(CellTree *tree);
+void submit_vote(Protected *p);
+void create_block(CellTree *tree, Key *author, int d);
+void add_block(int d, char *name);
 
 #endif
