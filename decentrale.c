@@ -139,38 +139,57 @@ unsigned char* str_to_SHA256(const char* str){
 }
 
 void compute_proof_of_work(Block *b, int d){
-  int nonce=0;
-  int ok=1;
-  unsigned char *previous_hash=b->previous_hash;
-  unsigned char *sha=previous_hash;
+  /*int ok=1;
+  char *s=block_to_char(b);
+  unsigned char *sha=str_to_SHA256(s);
+
+  b->nonce++;
+  s=block_to_char(b);
+  sha=str_to_SHA256(s);
+  printf("hello\n");
+  printf("%02x\n",sha);
+
+
 
   while(ok){
-    printf("hihihhhhihihh\n");
     for(int i=0;i<d;i++){
+      printf("+++++++++++++++++++\n");
       if(sha==NULL){
         break;
       }
-      if(sha[i]){
+      if(sha[i]!='0'){
         break;
       }
-      if(sha[i]==0 && d==i+1){
+      if(sha[i]=='0' && d==i+1){
+      printf("================\n");
+
         ok=0;
-        printf("%02x\n",sha);
+        printf("%02x\n",sha[i]);
+        printf("%02x\n",b->hash);
+
         b->hash=sha;
-        b->previous_hash=previous_hash;
-        b->nonce=nonce;
       }
     }
     if(ok){
-      previous_hash=sha;
-      sha=str_to_SHA256(previous_hash);
-      nonce++;
+      b->nonce++;
+      s=block_to_char(b);
+      sha=str_to_SHA256(s);
+        printf("hello\n");
+
+        printf("%02hhn\n",sha);
+
     }
-  }
+  }*/
 }
 
 int verify_block(Block* b, int d){
-  return 0;
+  unsigned char *hash=b->hash;
+  for(int i=0;i<d;i++){
+    if(hash[i]){
+      return 0;
+    }
+  }
+  return 1;
 }
 
 
@@ -185,6 +204,7 @@ void delete_block(Block* b){
     b->votes=b->votes->next;
     free(tmp);
   }
+  free(b);
 }
 
 CellTree *create_node(Block*b){
@@ -215,13 +235,13 @@ int update_height(CellTree *father, CellTree *child){
 void add_child(CellTree *father, CellTree* child){
   CellTree *first=father->firstChild;
   if(first==NULL/*||first->block*/){
-    printf("first null\n");
+    
     father->firstChild=child;
   }
   else{
     //printf("%s\n",father->firstChild->block->hash);
     while(first->nextBro){
-      printf("next bro\n");
+    
       first=first->nextBro;
     }
     first->nextBro=child;
@@ -241,19 +261,21 @@ void add_child(CellTree *father, CellTree* child){
 
 void print_tree(CellTree *boss){
   //PAS DE PERE
-  printf("[%d,%s]\n",boss->height,boss->block->hash);
-  printf("papa\n");
-  
-  while(boss->firstChild){
+  if(boss){
+    printf("[%d,%s]\n",boss->height,boss->block->hash);
+  }
+  CellTree *first=boss->firstChild;
+  while(first){
     printf(" ");
-    print_tree(boss->firstChild);
-    boss->firstChild=boss->firstChild->nextBro;
+    print_tree(first);
+    first=first->nextBro;
   }
 
-  if(boss->father==NULL){
-    while(boss->nextBro){
-      print_tree(boss->nextBro);
-      boss=boss->nextBro;  
+  CellTree *b=boss;
+  if(b->father==NULL){
+    while(b->nextBro){
+      print_tree(b->nextBro);
+      b=b->nextBro;  
     }
   }
 } 
@@ -293,29 +315,35 @@ CellTree *last_node(CellTree *tree){
   return block_node;
 }
 
-void fusio_protect(CellProtected *cell, CellProtected *cellp){
+void delete_protect(CellProtected *declaT){
+  CellProtected *tmp=declaT;
+  
+  while(declaT){
+    tmp=declaT;
+    declaT=declaT->next;
+    free(tmp);
+  }
+}
+void fusio_protect(CellProtected **cell, CellProtected *cellp){
+  CellProtected *tmp=cellp;
   if(cellp==NULL){
-    delete_cell_protect(cellp);
     return;
   }
 
-  if(cell==NULL){
-    while(cellp){
-      add_protect(cell,cellp->data);
-      cellp=cellp->next;
+  if(*cell==NULL){
+    while(tmp->data){
+      add_protect(cell,tmp->data);
+      tmp=tmp->next;
     }
-    delete_list_protect(cellp);
+    delete_protect(cellp);
     return;
   }
 
-  while(cell->next){
-    cell=cell->next;
+  while(tmp->data){
+    add_protect(cell,tmp->data);
+    tmp=tmp->next;
   }
-  while(cellp){
-    add_protect(cell,cellp->data);
-    cellp=cellp->next;
-  }
-  delete_list_protect(cellp);
+  delete_protect(cellp);
 }
 
 CellProtected *fusio_decla(CellTree *tree){
@@ -348,11 +376,12 @@ void submit_vote(Protected *p){
 void create_block(CellTree *tree, Key *author, int d){
   CellProtected *decla = read_protected("Pending_votes.txt");
   CellTree *last=last_node(tree);
+   Block *block;
   if(last!=NULL){
-    Block *block = creer_block(author, decla, last->hash);
+    block = creer_block(author, decla, last->block->hash);
   }
   else{
-    Block *block = creer_block(author, decla, NULL);
+    block = creer_block(author, decla, NULL);
   }
 
   compute_proof_of_work(block, d);
@@ -381,7 +410,7 @@ void add_block(int d, char *name){
       printf("Erreur dans l'ouverture du fichier.\n");
       return;
     }
-    ecrire_block(block);
+    ecrire_block(name,block);
     fclose(f);
     closedir(rep);
   
@@ -398,7 +427,7 @@ CellTree *read_tree(){
   if(rep){
     struct dirent *dir;
     while((dir=readdir(rep))){
-      if(strcmp(dir->d_name,".") && strcmp(dire->d_name,"..")){
+      if(strcmp(dir->d_name,".") && strcmp(dir->d_name,"..")){
         block = lire_block(dir->d_name);
         tab_tree[i]=create_node(block);
         i++;
@@ -409,15 +438,15 @@ CellTree *read_tree(){
 
   for(int j=0;j<i;j++){
     for(int k=0;k<i;k++){
-      if(T[j]->hash==T[k]->previous_hash){
-        add_child(T[j],T[k]);
+      if(tab_tree[j]->block->hash==tab_tree[k]->block->previous_hash){
+        add_child(tab_tree[j],tab_tree[k]);
       }
     }
   }
 
   for(int j=0;j<i;j++){
-    if(T[j]->father==NULL){
-      return T[j];
+    if(tab_tree[j]->father==NULL){
+      return tab_tree[j];
     }
   }
 }

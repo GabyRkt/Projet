@@ -230,10 +230,7 @@ int hash_function(Key *key,int size){
 }
 
 int equal_key(Key *cle, Key *key){
-  if(cle->val==key->val && cle->n==key->n){
-    return 1;
-  }
-  return 0;
+  return cle->val==key->val && cle->n==key->n;
 }
 
 //Recherche d'une clé publique dans la table de hashage

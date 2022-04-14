@@ -20,10 +20,11 @@ typedef struct block_tree_cell{
   int height;
 }CellTree;
 
-Block* creer_block(Key *k, CellProtected* votes, unsigned char *ph, int nonce);
+Block* creer_block(Key *k, CellProtected* votes, unsigned char *ph);
 void ecrire_block(char *nom, Block *block);
 Block *lire_block(char *nom);
 char *block_to_char(Block *block);
+
 void test_sha(const char *s);
 unsigned char* str_to_SHA256(const char* str);
 void compute_proof_of_work(Block *b, int d);
@@ -39,10 +40,12 @@ void delete_tree(CellTree *tree);
 
 CellTree *highest_child(CellTree *cell);
 CellTree *last_node(CellTree *tree);
-void fusio_protect(CellProtected *cell, CellProtected *cellp);
+void fusio_protect(CellProtected **cell, CellProtected *cellp);
 CellProtected *fusio_decla(CellTree *tree);
 void submit_vote(Protected *p);
 void create_block(CellTree *tree, Key *author, int d);
 void add_block(int d, char *name);
+CellTree *read_tree();
+Key *compute_winner_BT(CellTree *tree, CellKey *candidates, CellKey *voters, int sizeC, int sizeV);
 
 #endif

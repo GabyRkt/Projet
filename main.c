@@ -25,7 +25,7 @@ int main(){
     voters=voters->next;
     if(i==10){
       sprintf(name,"number %d",i);
-      create_block(NULL, voters->key, d);
+      create_block(NULL, voters->data, d);
       add_block(d, name);
     }
   }
