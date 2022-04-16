@@ -22,7 +22,7 @@ mainDecentrale: mainDecentrale.o decentrale.o centrale.o secure.o crypto.o -lm -
 main: main.o decentrale.o centrale.o secure.o crypto.o -lm -lssl -lcrypto
 	$(CC) -o $@ $(CFLAGS) $^
 
-calcul: calcul.o  crypto.o -lm
+calcul: calcul.o  crypto.o secure.o centrale.o decentrale.o -lm -lssl -lcrypto
 	$(CC) -o $@ $(CFLAGS) $^
 
 crypto.o: crypto.c

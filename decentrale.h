@@ -26,8 +26,9 @@ Block *lire_block(char *nom);
 char *block_to_char(Block *block);
 
 void test_sha(const char *s);
-unsigned char* str_to_SHA256(const char* str);
+unsigned char* str_to_SHA256(char* str);
 void compute_proof_of_work(Block *b, int d);
+int enough_zeros(unsigned char* str, int d);
 int verify_block(Block* b, int d);
 void delete_block(Block* b);
 
@@ -45,6 +46,7 @@ CellProtected *fusio_decla(CellTree *tree);
 void submit_vote(Protected *p);
 void create_block(CellTree *tree, Key *author, int d);
 void add_block(int d, char *name);
+int nb_file();
 CellTree *read_tree();
 Key *compute_winner_BT(CellTree *tree, CellKey *candidates, CellKey *voters, int sizeC, int sizeV);
 

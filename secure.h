@@ -17,6 +17,9 @@ typedef struct protect{
   Signature *sgn;
 }Protected;
 
+void affiche_key(Key *key);
+int len_key(Key *key);
+
 void b(int n);
 void init_key(Key* key, long val, long n);
 void init_pair_keys(Key* pKey, Key* sKey, long low_size, long up_size);

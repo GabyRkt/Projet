@@ -32,9 +32,31 @@ void init_pair_keys(Key* pKey, Key* sKey, long low_size, long up_size){
   init_key(pKey,s,n);
 }
 
+//Calcul la taille d'une clé
+int len_key(Key *key){
+  int len=3;
+  long val=key->val;
+  long n=key->n;
+   
+  while(val>0){
+    len++;
+    val=val/10;
+  }
+    
+  while(n>0){
+    len++;
+    n=n/10;
+  }
+
+  return len;
+}
+
 //Conversion d'une clé à sa représentation sous forme de chaîne de caractères
 char* key_to_str(Key* key){
+  // int len=len_key(key);
+  // char *cle=(char*)(malloc(sizeof(char)*len));
   char *cle=(char*)(malloc(sizeof(char)*2048));
+
   if (cle==NULL){
     printf("Erreur d'allocation\n");
     return NULL;
@@ -60,6 +82,11 @@ Key* str_to_key(char* str){
   sscanf(str,"(%lx,%lx)",&val,&n);
   init_key(cle,val,n);
   return cle;
+}
+
+//Affichage d'une clé
+void affiche_key(Key *key){
+  printf("(%lx,%lx)\n", key->val, key->n);
 }
 
 // Initialisation d'une signature
@@ -191,6 +218,8 @@ int verify(Protected* pr){
 char* protected_to_str(Protected* pr){
   char *cle=key_to_str(pr->pKey);
   char *sign=signature_to_str(pr->sgn);
+  //int len=strlen(cle) + strlen(sign) + strlen(pr->mess) + 2;
+  //cle=realloc(cle,sizeof(char)*len);
 
   //Concaténation de la clé, du message et de la signature
   strcat(cle," ");

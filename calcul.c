@@ -1,6 +1,11 @@
 #include <stdio.h>
-#include "crypto.h"
 #include <time.h>
+#include "decentrale.h"
+#include "centrale.h"
+#include "secure.h"
+#include "crypto.h"
+#include <openssl/sha.h>
+
 
 int main(){
 
@@ -16,6 +21,7 @@ int main(){
     printf("0 : Sortie\n");
     printf("1 : Calcul de temps\n");
     printf("2 : Comparaison des temps de calcul 2\n");
+    printf("3 : compute_proof_of_work \n");
 
     fgets(ligne, 256, stdin);
     sscanf(ligne, "%d\n", &c);
@@ -81,6 +87,15 @@ int main(){
         fclose(f);
         fclose(f1);
         break;
+      }
+
+      case 3: {
+        int d;
+        Block* b;
+        for(int i=0; i<d;i++){
+          compute_proof_of_work(b,i);   
+        }
+        break; 
       }
     }
   }

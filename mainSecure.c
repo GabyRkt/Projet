@@ -15,14 +15,15 @@ int main(){
   Key *pKey= malloc (sizeof(Key));
   Key *sKey= malloc (sizeof(Key));
   init_pair_keys(pKey, sKey, 3,7);
-  printf("pKey: (%lx, %lx) \n",pKey->val, pKey->n);
-  printf("sKey: (%lx, %lx) \n",sKey->val, sKey->n);
+  printf("pKey: "); affiche_key(pKey);
+  printf("sKey: "); affiche_key(sKey);
+
 
   // Testing Key Serialization
   char* chaine= key_to_str(pKey);
-  printf("key to str: %s \n",chaine);
+  printf("key to str: %s\n", chaine);
   Key *k=str_to_key(chaine);
-  printf("str to key: (%lx, %lx) \n", k->val, k->n);
+  printf("str to key: "); affiche_key(k);
   free(chaine);
   free(k);
 
@@ -48,7 +49,7 @@ int main(){
   
   printf("signature to str: %s \n",chaine);
   sgn = str_to_signature(chaine);
-  printf("str to signature: \n");
+  printf("str to signature: ");
   print_long_vector(sgn->content, sgn->size);
   
   free(sKey);
@@ -96,6 +97,5 @@ int main(){
   free(pr2->mess);
   free(pr2);
   liberer_protected(pr);
-  
   return 0;
 }
