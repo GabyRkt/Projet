@@ -87,19 +87,19 @@ long rand_long(long low, long up){
 
 //Méthode de Miller
 int is_prime_miller ( long p, int k) {
-  if (p == 2) {
+  if (p==2){
     return 1;
   }
-  if (!( p & 1) || p <= 1) { //on verifie que p est impair et different de 1
+  if (!(p&1) || p<=1) { //on verifie que p est impair et different de 1
     return 0;
   }
 
   //on determine b et d :
-  long b = 0;
-  long d = p - 1;
+  long b=0;
+  long d=p - 1;
 
-  while (!( d & 1)) { //tant que d n’est pas impair
-    d = d/2;
+  while (!(d&1)) { //tant que d n’est pas impair
+    d=d/2;
     b=b+1;
   }
   
@@ -107,9 +107,9 @@ int is_prime_miller ( long p, int k) {
   long a;
   int i;
   
-  for(i = 0; i < k; i++){
-    a = rand_long (2, p -1);
-    if( witness (a,b,d,p)){
+  for(i=0; i<k; i++){
+    a = rand_long(2,p-1);
+    if(witness(a,b,d,p)){
       return 0;
     }
   }
