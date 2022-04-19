@@ -90,11 +90,19 @@ int main(){
       }
 
       case 3: {
-        int d;
-        Block* b;
-        for(int i=0; i<d;i++){
-          compute_proof_of_work(b,i);   
-        }
+        FILE *f2=fopen("hashage1.txt","a");
+        int d=4;
+        unsigned char *nom="Test";
+        CellProtected *decla=read_protected("declarations.txt");
+        Block* b=creer_block(decla->data->pKey,decla,nom);
+        //for(int i=0; i<d;i++){
+          ti= clock();
+          compute_proof_of_work(b,d);   
+          tf= clock();
+          temps= (float)(tf - ti)/CLOCKS_PER_SEC;
+          fprintf(f2, "%d %f\n",d,temps);
+        //}
+        fclose(f2);
         break; 
       }
     }

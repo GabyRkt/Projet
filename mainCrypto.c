@@ -1,16 +1,9 @@
-#include <stdio.h>
-#include <time.h>
-#include <string.h>
-#include <stdlib.h>
-#include <assert.h>
 #include "crypto.h"
-
 
 int main(void) {
 
   srand(time(NULL));
-
-  printf("----------------Test Primalité-----------------\n");
+  printf("--------------------Test Primalité--------------------\n");
   //Nombres Premiers
   int nbp = 301793;
   if(is_prime_naive(nbp)==1){
@@ -25,7 +18,7 @@ int main(void) {
   }
   assert(is_prime_naive(27)==0);
 
-  printf("------------Exponentiation modulaire-------------\n");
+  printf("\n---------------Exponentiation modulaire---------------\n");
   //Test d'équivalence des 2 fonctions
   assert(modpow_naive(2,30,5)== modpow(2,30,5));
 
@@ -42,7 +35,7 @@ int main(void) {
 
   assert(modpow(6,4,3)==0);
 
-  printf("----------------Génération Clé-----------------\n");
+  printf("\n--------------------Génération Clé--------------------\n");
   // Generation de cle:
   long p = random_prime_number(3,7,5000);
   long q = random_prime_number(3,7,5000); 
@@ -74,7 +67,7 @@ int main(void) {
   printf("cle publique = (%lx, %lx) \n", s,n);
   printf("cle privee = (%lx, %lx) \n", u,n);
 
-  printf("----------------Codage - Décodage-----------------\n");
+  printf("\n-------------------Codage - Décodage------------------\n");
   //Chiffrement
   char message[10] = "Hello";
   int len = strlen(message);

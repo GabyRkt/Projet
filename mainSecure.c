@@ -1,23 +1,15 @@
-#include <stdio.h>
-#include <time.h>
-#include <string.h>
-#include <stdlib.h>
-#include <assert.h>
 #include "secure.h"
-#include "crypto.h"
-
 
 int main(){
 
   srand(time(NULL));
-  
+  printf("\n---------------------Clé---------------------\n");
   // Testing init_pair_keys
   Key *pKey= malloc (sizeof(Key));
   Key *sKey= malloc (sizeof(Key));
   init_pair_keys(pKey, sKey, 3,7);
   printf("pKey: "); affiche_key(pKey);
   printf("sKey: "); affiche_key(sKey);
-
 
   // Testing Key Serialization
   char* chaine= key_to_str(pKey);

@@ -1,8 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "secure.h"
-#include "crypto.h"
+
+//Exercice 3
+//Manipulations de structures sécurisées
 
 //Initialisation d'une clé
 void init_key(Key *key, long val, long n){
@@ -48,14 +47,13 @@ int len_key(Key *key){
     n=n/10;
   }
 
-  return len;
+  return len+1;
 }
 
 //Conversion d'une clé à sa représentation sous forme de chaîne de caractères
 char* key_to_str(Key* key){
-  // int len=len_key(key);
-  // char *cle=(char*)(malloc(sizeof(char)*len));
-  char *cle=(char*)(malloc(sizeof(char)*2048));
+  int len=len_key(key);
+  char *cle=(char*)(malloc(sizeof(char)*len));
 
   if (cle==NULL){
     printf("Erreur d'allocation\n");
@@ -218,8 +216,8 @@ int verify(Protected* pr){
 char* protected_to_str(Protected* pr){
   char *cle=key_to_str(pr->pKey);
   char *sign=signature_to_str(pr->sgn);
-  //int len=strlen(cle) + strlen(sign) + strlen(pr->mess) + 2;
-  //cle=realloc(cle,sizeof(char)*len);
+  int len=strlen(cle) + strlen(sign) + strlen(pr->mess) + 3;
+  cle=realloc(cle,sizeof(char)*len);
 
   //Concaténation de la clé, du message et de la signature
   strcat(cle," ");
@@ -246,17 +244,20 @@ Protected *str_to_protected(char *str){
   return pr;
 }
 
+//Exercice 4
+//Création de données pour simuler le processus de vote
+
 //Génération des fichiers clé, candidat et déclaration
 void generate_random_data(int nv, int nc) {
   
   //Création de 3 tableaux
-  char**PKey_tab=(char**)malloc(sizeof(char*)*nv);
-  char**SKey_tab=(char**)malloc(sizeof(char*)*nv);
-  char**Cand_tab=(char**)malloc(sizeof(char*)*nc);
+  char **PKey_tab=(char**)malloc(sizeof(char*)*nv);
+  char **SKey_tab=(char**)malloc(sizeof(char*)*nv);
+  char **Cand_tab=(char**)malloc(sizeof(char*)*nc);
 
   //Variable pour stocker les clés publiques et privées
-  Key *sKey;
-  Key *pKey;
+  Key *sKey=(Key*)(malloc(sizeof(Key)));
+  Key *pKey=(Key*)(malloc(sizeof(Key)));
   char *str_pkey;
   char *str_skey;
 
@@ -266,8 +267,6 @@ void generate_random_data(int nv, int nc) {
   FILE *f=fopen("keys.txt","w");
   for (int i=0;i<nv;i++) {
     //Initiation de 2 clés
-    sKey=(Key*)(malloc(sizeof(Key)));
-    pKey=(Key*)(malloc(sizeof(Key)));
     init_pair_keys(pKey,sKey, 3,7);
 
     //Conversion des 2 clés en chaîne de caractères 
@@ -293,9 +292,9 @@ void generate_random_data(int nv, int nc) {
       fprintf(f,"%s %s \n",PKey_tab[i],SKey_tab[i]);
    
     }
-    free(sKey);
-    free(pKey);
   }
+  free(sKey);
+  free(pKey);
   fclose(f);
 
   //Génération de clés candidates
@@ -339,7 +338,6 @@ void generate_random_data(int nv, int nc) {
   }
   fclose(f);
  
-
   for(int i=0; i<nv; i++) {
     free(PKey_tab[i]);
     free(SKey_tab[i]);

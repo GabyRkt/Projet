@@ -31,6 +31,8 @@ void compute_proof_of_work(Block *b, int d);
 int enough_zeros(unsigned char* str, int d);
 int verify_block(Block* b, int d);
 void delete_block(Block* b);
+void delete_block_all(Block* b);
+
 
 CellTree *create_node(Block*b);
 int update_height(CellTree *father, CellTree *child);
@@ -43,11 +45,13 @@ CellTree *highest_child(CellTree *cell);
 CellTree *last_node(CellTree *tree);
 void fusio_protect(CellProtected **cell, CellProtected *cellp);
 CellProtected *fusio_decla(CellTree *tree);
+
 void submit_vote(Protected *p);
 void create_block(CellTree *tree, Key *author, int d);
 void add_block(int d, char *name);
 int nb_file();
 CellTree *read_tree();
 Key *compute_winner_BT(CellTree *tree, CellKey *candidates, CellKey *voters, int sizeC, int sizeV);
+void clean_rep();
 
 #endif

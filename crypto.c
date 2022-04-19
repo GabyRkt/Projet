@@ -1,8 +1,4 @@
-#include <stdio.h>
-#include <math.h>
 #include "crypto.h"
-#include <stdlib.h>
-#include <string.h>
 
 //Exercice 1 
 //Resolution du problème de primalité
@@ -35,7 +31,7 @@ long modpow_naive(long a, long m, long n){
   }
   
   int s=1;
-  for(int i=1;i<=m;i++){
+  for(int i=0;i<m;i++){
     //Manipulation de petits nombres
     s*=a;
     s=s%n;
@@ -46,6 +42,10 @@ long modpow_naive(long a, long m, long n){
 // Exponentiation modulaire rapide
 int modpow(long a, long m, long n){
   int tmp;
+  if(a%n==0){
+    return 0;
+  }
+
   if(m==0){
      return 1;
   }
@@ -80,10 +80,12 @@ int witness(long a, long b, long d, long p){
   return 1;
 }
 
+//Génération de nombre aléatoire
 long rand_long(long low, long up){
   return rand()%(up-low+1)+low;
 }
 
+//Méthode de Miller
 int is_prime_miller ( long p, int k) {
   if (p == 2) {
     return 1;
@@ -129,6 +131,7 @@ long random_prime_number(int low_size, int up_size, int k){
   return premier;
 }
 
+//Affichage en binaire
 void binaire(long p) {
   if (p==1 || p==0) {
     printf(" %ld",p);
@@ -139,6 +142,7 @@ void binaire(long p) {
   printf("%ld", p%2);
 }
 
+//Taille en écriture binaire
 int size_bin(long p) {
   int n=p;
   int t=1;
@@ -213,7 +217,6 @@ char *decrypt(long *crypted, int size, long u, long n){
 }
 
 void print_long_vector(long *result, int size){
-  // printf("Vector: [");
   printf("[");
   for (int i=0; i<size; i++){
     printf("%lx \t", result[i]);

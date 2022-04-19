@@ -1,10 +1,7 @@
-#include <stdio.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
 #include "centrale.h"
-#include "secure.h"
-#include "crypto.h"
+
+//Exercice 5
+//Lecture et stockage des données dans des listes chaînées
 
 //Création d'une liste chaînée de clé
 CellKey* create_cell_key(Key* key){
@@ -13,6 +10,7 @@ CellKey* create_cell_key(Key* key){
     printf("Erreur dans l'allocation.\n");
     return NULL;
   }
+
   cell->data=key;
   cell->next=NULL;
   return cell;
@@ -52,8 +50,7 @@ CellKey* read_public_keys(char *nom){
 //Affichage d'une liste de clé
 void print_list_keys(CellKey* LCK){
   Key *cle=LCK->data;
-  
-  while(LCK){
+  while(LCK && cle){
     cle=LCK->data;
     if(cle){
       printf("(%lx,%lx)\n",cle->val,cle->n);
@@ -64,10 +61,12 @@ void print_list_keys(CellKey* LCK){
 
 //Supression d'une clé dans la liste
 void delete_cell_key(CellKey *c){
-  if(c->data){
-    free(c->data);
+  if(c){
+    if(c->data){
+      free(c->data);
+    }
+    free(c);
   }
-  free(c);
 }
 
 //Suppression d'une liste de clé
@@ -151,10 +150,12 @@ void print_list_protect(CellProtected* LPT){
 
 //Suppression d'une déclaration dans la liste
 void delete_cell_protect(CellProtected *p){
-  if(p->data){
-    liberer_protected(p->data);
+  if(p){
+    if(p->data){
+      liberer_protected(p->data);
+    }
+    free(p);
   }
-  free(p);
 }
 
 //Suppression d'une liste de déclaration
@@ -229,6 +230,7 @@ int hash_function(Key *key,int size){
   return res;
 }
 
+//Egalité entre 2 clé
 int equal_key(Key *cle, Key *key){
   return cle->val==key->val && cle->n==key->n;
 }
@@ -236,7 +238,6 @@ int equal_key(Key *cle, Key *key){
 //Recherche d'une clé publique dans la table de hashage
 int find_position(HashTable *t, Key *key){
   int pos=hash_function(key,t->size);
-
   //Recherche de la position trouvée par la fonction de hachage jusqu'à la fin du tableau
   for(int i=0;i<(t->size-pos);i++){
     if(t->tab[pos+i]){
@@ -247,9 +248,10 @@ int find_position(HashTable *t, Key *key){
   }
 
   //Recherche du début du tableau jusqu'à la position trouvée par la fonction de hachage
-  for(int i=0;i<pos;i++){
-    if(t->tab[pos+i]){
+  for(int i=0;i<=pos;i++){
+    if(t->tab[i]){
       if(equal_key(t->tab[i]->key,key)){
+
         return i;
       }
     }
@@ -371,6 +373,7 @@ Key* compute_winner(CellProtected* decl, CellKey* candidates, CellKey* voters, i
   Key *decla_v;
   Key *cand;
 
+  int i=0;
   int nb_vote=0;
   int nb_cand=0;
   while(decl){
@@ -384,13 +387,19 @@ Key* compute_winner(CellProtected* decl, CellKey* candidates, CellKey* voters, i
     posC=find_position(Hc,cand);
     hc_pos=Hc->tab[posC];
 
+  i++;
     //Vérififation du droit de vote
     if(equal_key(hv_pos->key,decla_v)){
+      //printf("equal %d\t",i);
       //Vérification du nombre de votes
       if(hv_pos->val==0){
+      //printf("hv_pos %d\t",nb_vote);
+
         (hv_pos->val)++;
         //Vérification du candidat
         if(equal_key(hc_pos->key,cand)){
+          //printf("hc_pos%d \n",nb_vote);
+
           (hc_pos->val)++;
           nb_vote++;
         }
@@ -424,6 +433,7 @@ Key* compute_winner(CellProtected* decl, CellKey* candidates, CellKey* voters, i
   Key *victoire =(Key*)(malloc(sizeof(Key)));
   init_key(victoire,gagnant->key->val,gagnant->key->n);
   
+  //affiche_hash(Hv);
   delete_hashtable(Hv);
   delete_hashtable(Hc);
   return victoire;

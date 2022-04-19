@@ -13,7 +13,7 @@ Block* creer_block(Key *k, CellProtected* votes, unsigned char *ph){
   Block* b=(Block*)(malloc(sizeof(Block)));
   b->author=k;
   b->votes=votes;
-  b->hash=NULL;
+  b->hash=malloc(sizeof(unsigned char*)*2048);
   b->previous_hash=ph;
   b->nonce=0;
   return b;
@@ -29,7 +29,7 @@ void ecrire_block(char *nom, Block *block){
   char *cle=key_to_str(block->author); 
   char *protect;
   CellProtected *votes=block->votes;
-  
+
   if(block){
     fprintf(f,"%s %s %s %d\n",cle, block->hash, block->previous_hash, block->nonce);
     free(cle);
@@ -87,27 +87,28 @@ char* block_to_char(Block* block) {
     if (block == NULL) return NULL;
     
     char* cp1 = (char*) malloc(100000*sizeof(char));
-
     //obtaining block->votes as a string
-    char* str = (char*) malloc(100000*sizeof(char));
+    char *str = (char*)(malloc(100000*sizeof(char)));
+    str[0] = '\n';
+
     CellProtected* cp = block->votes;
      char* vote;
-    str[0] = '\n';
     int i = 1;
     while(cp && cp->data) {
-       vote = protected_to_str(cp->data);
-        for(int j=0; j<strlen(vote); j++) {
-            str[i] = vote[j];
-            i++;
-        }
+      vote = protected_to_str(cp->data);
+      for(int k=0; k<strlen(vote);k++){
+        str[i] = vote[k];
+        i++;
+      }
         str[i] = '\n';
         i++;
         free(vote);
         cp = cp->next;
     }
+    str[i]='\0';
     //assembling the cp1ult
     char* author = key_to_str(block->author); 
-    sprintf(cp1,"%s %s %s %d",author,(char*) block->previous_hash,str,block->nonce);
+    sprintf(cp1,"%s %s %d %s",author,block->previous_hash,block->nonce,str);
     free(author); 
     free(str);
     return cp1;
@@ -147,15 +148,23 @@ int enough_zeros(unsigned char* str, int d) {
 
 void compute_proof_of_work(Block* b, int d) {
     char* str = block_to_char(b);
-    b->hash = str_to_SHA256(str);
+    char* tmp=str_to_SHA256(str);
+
+    // strcpy(b->hash,tmp);
+    sprintf(b->hash,"%s",tmp);
+    free(tmp);
     b->nonce = 0;
+    free(str);
+
     while( !enough_zeros(b->hash,d) ) {
         b->nonce++;
-
-        b->hash = str_to_SHA256(b->hash);
+        str = block_to_char(b);
+        tmp=str_to_SHA256(str);
+        free(str);
+        strcpy(b->hash,tmp);
+        free(tmp);
     }
 }
-
 
 int verify_block(Block* b, int d){
   unsigned char *hash=b->hash;
@@ -169,16 +178,29 @@ int verify_block(Block* b, int d){
 
 // Desallocation d'un block
 void delete_block(Block* b){
-  free(b->hash);
-  free(b->previous_hash);
-  CellProtected* tmp;
+  if(b){
+    
+    free(b->hash);
+    free(b->previous_hash);
+    CellProtected* tmp;
 
-  while(b->votes){
-    tmp=b->votes;
-    b->votes=b->votes->next;
-    free(tmp);
+    while(b->votes){
+      tmp=b->votes;
+      b->votes=b->votes->next;
+      free(tmp);
+    }
+    free(b);
   }
-  free(b);
+}
+
+void delete_block_all(Block* b){
+  if(b){
+    free(b->author);
+    free(b->hash);
+    free(b->previous_hash);
+    delete_list_protect(b->votes);
+    free(b);
+  }
 }
 
 CellTree *create_node(Block*b){
@@ -247,7 +269,7 @@ void print_tree(CellTree *boss){
   }
 
   if(boss && boss->block){
-    printf("[%d,%s,%s]\n",boss->height,boss->block->hash,boss->block->previous_hash);
+    printf("[%d,%s]\n",boss->height,boss->block->hash);
   }
 
   CellTree *first=boss->firstChild;
@@ -266,18 +288,49 @@ void print_tree(CellTree *boss){
 
 } 
 
-void delete_node(CellTree *node){
+// void delete_node(CellTree *node){
+//   if(node){
+//     delete_block(node->block);
+//     free(node);
+//   }
+// }
+void delete_node_all(CellTree *node){
   if(node){
-    delete_block(node->block);
+    delete_block_all(node->block);
     free(node);
   }
 }
 
-void delete_tree(CellTree *tree){
+// void delete_tree(CellTree *tree){
+//   if(tree){
+//     delete_tree(tree->firstChild);
+//     delete_tree(tree->nextBro);
+//     delete_node(tree);
+//   }
+// }
+void delete_tree_all(CellTree *tree){
   if(tree){
-    delete_tree(tree->firstChild);
-    delete_tree(tree->nextBro);
-    delete_node(tree);
+    delete_tree_all(tree->firstChild);
+    delete_tree_all(tree->nextBro);
+    delete_node_all(tree);
+  }
+}
+
+void delete_node_nocp(CellTree *tree){
+  if(tree){
+    free(tree->block->author);
+    free(tree->block->hash);
+    free(tree->block->previous_hash);
+    free(tree->block);
+    free(tree);
+  }
+}
+
+void delete_tree_nocp(CellTree *tree){
+  if(tree){
+    delete_tree_nocp(tree->firstChild);
+    delete_tree_nocp(tree->nextBro);
+    delete_node_nocp(tree);
   }
 }
 
@@ -337,21 +390,20 @@ void fusio_protect(CellProtected **cell, CellProtected *cellp){
 }
 
 CellProtected *fusio_decla(CellTree *tree){
-  CellTree *last=last_node(tree);
   CellTree *high=tree;
   CellTree *first=tree;
   CellProtected *res=NULL;
   CellProtected *votes=high->block->votes;
-
   fusio_protect(&res,votes);
-  
-  while(high!=last){
+
+  int i=0;
+  while(high->firstChild){
     high=highest_child(first);
-    votes=high->block->votes;    
+    votes=high->block->votes;  
     fusio_protect(&res,votes);
     first=high;
+    i++;
   }
-
   return res;
 }
 
@@ -375,7 +427,7 @@ void create_block(CellTree *tree, Key *author, int d){
   }
   
   CellTree *last=last_node(tree);
-   Block *block;
+  Block *block;
   if(last && last->block){
     block = creer_block(author, decla, last->block->hash);
   }
@@ -384,6 +436,9 @@ void create_block(CellTree *tree, Key *author, int d){
   }
   compute_proof_of_work(block, d);
   ecrire_block("Pending_block.txt",block);
+  delete_list_protect(decla);
+  free(block->hash);
+  free(block);
   remove("Pending_votes.txt");
 }
 
@@ -418,9 +473,10 @@ void add_block(int d, char *name){
     ecrire_block(direct,block);
     fclose(f);
     closedir(rep);
+     free(direct);
 
   }
-  delete_block(block);
+  delete_block_all(block);
   remove("Pending_block.txt");
 }
 
@@ -440,6 +496,33 @@ int nb_file(){
     return n;
 }
 
+/*Key *copy_key(Key *key){
+  Key *copy=(Key*)(malloc(sizeof(Key)));
+  init_key(copy,key->val,key->n);
+  return copy;
+}
+
+Signature *copy_sign(Signature *sign){
+  long *content=(long*)(malloc(sizeof(long)*sign->size));
+  for(int i=0;i<sign->size;i++){
+    content[i]=sign->content[i];
+  }
+  Signature *copy=init_signature(content,sign->size);
+  return copy;
+}
+
+Protected *copy_protect(Protected *protect){
+  Key *key=copy_key(protect->pKey);
+  Signature *sign=copy_sign(protect->sgn);
+  char *mess;
+  strcpy(mess,protect->mess);
+  Protected *copy=init_protected(key,mess,sign);
+  return copy;
+}
+CellTree *copy_tree(CellTree *tree){
+  CellTree *copy=create_node(NULL);
+
+}*/
 
 CellTree *read_tree(){
   CellTree **tab_tree=(CellTree**)(malloc(sizeof(CellTree)*nb_file()));
@@ -458,28 +541,57 @@ CellTree *read_tree(){
         i++;
       }
     }
+    free(fichier);
     closedir(rep);
   }
 
+  Block *father;
+  Block *child;
   for(int j=0;j<i;j++){
     for(int k=0;k<i;k++){
-      if(strcmp(tab_tree[j]->block->hash,tab_tree[k]->block->previous_hash)==0){
+      
+      father=tab_tree[j]->block;
+      child=tab_tree[k]->block;
+
+      if(strcmp(father->hash,child->previous_hash)==0){
         add_child(tab_tree[j],tab_tree[k]);
       }
     }
   }
 
+  CellTree *tree2;
   for(int j=0;j<i;j++){
     if(tab_tree[j]->father==NULL){
-      return tab_tree[j];
+      tree2=tab_tree[j];
     }
   }
+  free(tab_tree);
+  return tree2;
 }
 
 Key *compute_winner_BT(CellTree *tree, CellKey *candidates, CellKey *voters, int sizeC, int sizeV){
   CellProtected *decla=fusio_decla(tree);
   verify_protect(&decla);
-  Key *cle=compute_winner(decla,candidates,voters,sizeC,sizeV);
 
+  Key *cle=compute_winner(decla,candidates,voters,sizeC,sizeV);
+  delete_list_protect(decla);
   return cle;
+}
+
+void clean_rep(){
+  DIR *rep=opendir("./Blockchain/");
+  int n=0;
+
+  if (rep!=NULL){
+    struct dirent *dir;
+    char *fichier=malloc(sizeof(char)*2048);
+
+    while ((dir=readdir(rep))){
+      if (strcmp(dir->d_name,".")!=0 && strcmp(dir->d_name,"..")!=0){
+        sprintf(fichier,"./Blockchain/%s",dir->d_name);
+        remove(fichier);
+      }
+    }
+    closedir(rep);
+  }
 }
