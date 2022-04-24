@@ -53,7 +53,7 @@ void print_list_keys(CellKey* LCK){
   while(LCK && cle){
     cle=LCK->data;
     if(cle){
-      printf("(%lx,%lx)\n",cle->val,cle->n);
+      affiche_key(cle);
     }
     LCK=LCK->next;
   }
@@ -124,12 +124,13 @@ CellProtected* read_protected(char *nom){
 
 //Affichage d'une liste de déclaration
 void print_list_protect(CellProtected* LPT){
-  Protected *protect=LPT->data;
-  char *key;
-  char *sign;
   if(LPT==NULL){
     return;
   }
+
+  Protected *protect=LPT->data;
+  char *key;
+  char *sign;
   
   while(LPT){
     if(LPT->data==NULL||LPT==NULL){
@@ -238,21 +239,20 @@ int equal_key(Key *cle, Key *key){
 //Recherche d'une clé publique dans la table de hashage
 int find_position(HashTable *t, Key *key){
   int pos=hash_function(key,t->size);
-  //Recherche de la position trouvée par la fonction de hachage jusqu'à la fin du tableau
-  for(int i=0;i<(t->size-pos);i++){
-    if(t->tab[pos+i]){
-      if(equal_key(t->tab[pos+i]->key,key)){
-        return pos+i;
-      }
-    }
+  int probing;
+
+  //Test l'existence de clé à la position 
+  if(t->tab[pos]==NULL){
+    printf("Clé non trouvé\n");
+    return pos;
   }
 
-  //Recherche du début du tableau jusqu'à la position trouvée par la fonction de hachage
-  for(int i=0;i<=pos;i++){
-    if(t->tab[i]){
-      if(equal_key(t->tab[i]->key,key)){
-
-        return i;
+  //Recherche de la position trouvée par la fonction de hachage jusqu'à la fin du tableau
+  for(int i=0;i<t->size;i++){
+    probing=(pos+i)%t->size;
+    if(t->tab[probing]){
+      if(equal_key(t->tab[probing]->key,key)){
+        return probing;
       }
     }
   }
@@ -261,8 +261,23 @@ int find_position(HashTable *t, Key *key){
   return pos;
 }
 
+//Recherche d'une clé publique dans la table de hashage
+int position(HashTable *t, Key *key){
+  int pos=hash_function(key,t->size);
+  int probing;
+
+  //Recherche de la position trouvée par la fonction de hachage jusqu'à la fin du tableau
+  for(int i=0;i<t->size;i++){
+      probing=(pos+i)%t->size;
+      if(t->tab[probing]==NULL){
+        return probing;
+      }
+  }
+  return -1;
+}
+
 //Création d'une table de hashage
-HashTable *create_hashtable(CellKey *keys, int size){
+/*HashTable *create_hashtable(CellKey *keys, int size){
   HashTable* hash=(HashTable*)(malloc(sizeof(HashTable)));
   if(hash==NULL){
     printf("Erreur d'allocation\n");
@@ -318,6 +333,60 @@ HashTable *create_hashtable(CellKey *keys, int size){
       else{
         i++;
       }
+    }
+    else{
+      return hash;
+    }
+  }
+  return hash;
+}*/
+
+//Création d'une table de hashage
+HashTable *create_hashtable(CellKey *keys, int size){
+  HashTable* hash=(HashTable*)(malloc(sizeof(HashTable)));
+  if(hash==NULL){
+    printf("Erreur d'allocation\n");
+    return NULL;
+  }
+  
+  HashCell **hash_tab=(HashCell**)(malloc(sizeof(HashCell*)*size));
+  if(hash_tab==NULL){
+    printf("Erreur d'allocation\n");
+    free(hash);
+    return NULL;
+  }
+
+    hash->tab=hash_tab;
+    hash->size=size;
+  
+  //Initialisation des cases de la table de Hashage 
+  for(int i=0;i<size;i++){
+    hash->tab[i]=NULL;
+  }
+
+  int pos_k;
+  HashCell *hsh;
+  Key *key=keys->data;
+  
+  //Insertion des clés publiques dans la table de hashage
+  while(keys){
+    key=keys->data;
+    
+    //Clé publique non nulle
+    if(key){
+      //Recherche de la position de la clé
+      pos_k=position(hash,key);
+      //Si la table de hashage ne possède plus de case libre
+      if(pos_k==-1){
+        printf("Table de Hashage remplie\n\n");
+        return hash;
+      }
+
+      hsh=hash->tab[pos_k];
+
+      hsh=create_hashcell(keys->data);
+      hash->tab[pos_k]=hsh;
+      keys=keys->next;
     }
     else{
       return hash;

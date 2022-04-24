@@ -3,12 +3,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <openssl/sha.h>
+#include "time.h"
 #include "decentrale.h"
 #include "centrale.h"
 #include "secure.h"
 #include "crypto.h"
 
 int main(){
+  srand(time(NULL));
   int sizeC=5;
   int sizeV=100;
 

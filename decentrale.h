@@ -23,7 +23,8 @@ typedef struct block_tree_cell{
 Block* creer_block(Key *k, CellProtected* votes, unsigned char *ph);
 void ecrire_block(char *nom, Block *block);
 Block *lire_block(char *nom);
-char *block_to_char(Block *block);
+char *block_to_str(Block *block);
+int len_nonce(int nonce);
 
 void test_sha(const char *s);
 unsigned char* str_to_SHA256(char* str);

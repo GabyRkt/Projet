@@ -33,7 +33,7 @@ long modpow_naive(long a, long m, long n){
   int s=1;
   for(int i=0;i<m;i++){
     //Manipulation de petits nombres
-    s*=a;
+    s=s*a;
     s=s%n;
   }
   return s;
@@ -182,7 +182,7 @@ void generate_key_values(long p, long q, long *n, long *s, long *u){
   long v;
   
   while(z!=1){
-    *s= rand_long(2,t);
+    *s=rand_long(2,t);
     z=extended_gcd(*s,t,u,&v);
   }  
 }

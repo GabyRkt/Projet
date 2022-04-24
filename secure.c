@@ -203,6 +203,7 @@ int verify(Protected* pr){
   Signature *sgn=pr->sgn;
   Key *pKey=pr->pKey;
   char *mess=decrypt(sgn->content,sgn->size,pKey->val,pKey->n);
+
   if(strcmp(mess,pr->mess)!=0){
     free(mess);
     return 0;
@@ -216,17 +217,16 @@ int verify(Protected* pr){
 char* protected_to_str(Protected* pr){
   char *cle=key_to_str(pr->pKey);
   char *sign=signature_to_str(pr->sgn);
+  
   int len=strlen(cle) + strlen(sign) + strlen(pr->mess) + 3;
-  cle=realloc(cle,sizeof(char)*len);
+  char *protect=(char*)(malloc(sizeof(char)*len));
 
-  //Concaténation de la clé, du message et de la signature
-  strcat(cle," ");
-  strcat(cle,pr->mess);
-  strcat(cle," ");
-  strcat(cle,sign);
+  sprintf(protect,"%s %s %s",cle,pr->mess,sign);
+
   free(sign);
+  free(cle);
 
-  return cle;
+  return protect;
 }
 
 //Conversion d'une chaîne de caractère en déclaration signée
@@ -251,11 +251,11 @@ Protected *str_to_protected(char *str){
 void generate_random_data(int nv, int nc) {
   
   //Création de 3 tableaux
-  char **PKey_tab=(char**)malloc(sizeof(char*)*nv);
-  char **SKey_tab=(char**)malloc(sizeof(char*)*nv);
-  char **Cand_tab=(char**)malloc(sizeof(char*)*nc);
+  char **PKey_tab=(char**)(malloc(sizeof(char*)*nv));
+  char **SKey_tab=(char**)(malloc(sizeof(char*)*nv));
+  char **Cand_tab=(char**)(malloc(sizeof(char*)*nc));
 
-  //Variable pour stocker les clés publiques et privées
+  //Variables pour stocker les clés publiques et privées
   Key *sKey=(Key*)(malloc(sizeof(Key)));
   Key *pKey=(Key*)(malloc(sizeof(Key)));
   char *str_pkey;
@@ -266,17 +266,15 @@ void generate_random_data(int nv, int nc) {
   //Génération de clés publiques et privées
   FILE *f=fopen("keys.txt","w");
   for (int i=0;i<nv;i++) {
-    //Initiation de 2 clés
-    init_pair_keys(pKey,sKey, 3,7);
 
-    //Conversion des 2 clés en chaîne de caractères 
+    init_pair_keys(pKey,sKey, 3,7);
     str_skey=key_to_str(sKey);
     str_pkey=key_to_str(pKey);
 
     //Vérification de l'existence des 2 clés dans les tableaux
     same=0; //0 si les clés n'existent pas, 1 sinon
     for(int j=0;j<i;j++){ 
-      if(same==0 && PKey_tab[j]==str_pkey && SKey_tab[j]==str_skey){
+      if(PKey_tab[j]==str_pkey && SKey_tab[j]==str_skey){
         i--;
         same=1;
         break;
@@ -290,9 +288,9 @@ void generate_random_data(int nv, int nc) {
       SKey_tab[i]=key_to_str(sKey);
       PKey_tab[i]=key_to_str(pKey);
       fprintf(f,"%s %s \n",PKey_tab[i],SKey_tab[i]);
-   
     }
   }
+  
   free(sKey);
   free(pKey);
   fclose(f);
@@ -302,10 +300,22 @@ void generate_random_data(int nv, int nc) {
   f=fopen("candidates.txt","w");
   for(int i=0;i<nc;i++){
     rdm=rand()%nv;
-    
+    same=0;
+
+    //Vérification de l'existence de la clé dans le tableau
+    for(int j=0; j<i; j++){
+      if(Cand_tab[j]==PKey_tab[rdm]){
+        same=1;
+        i--;
+        break;
+      }
+    }
+
     //Ajout de candidat dans le tableau et fichier candidates.txt
-    fprintf(f,"%s \n",PKey_tab[rdm]);
-    Cand_tab[i]=PKey_tab[rdm];
+    if(same==0){
+      fprintf(f,"%s \n",PKey_tab[rdm]);
+      Cand_tab[i]=PKey_tab[rdm];
+    }
   }
   fclose(f);
 

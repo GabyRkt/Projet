@@ -77,7 +77,7 @@ int main(void) {
   printf("Encoded representation : \n");
   print_long_vector(crypted, len);
 
-  // Dechiffrement:
+  // Dechiffrement
   char *decoded = decrypt(crypted, len, u ,n);
   printf("Decoded: %s\n", decoded);
 

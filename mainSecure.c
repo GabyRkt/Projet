@@ -3,7 +3,7 @@
 int main(){
 
   srand(time(NULL));
-  printf("\n---------------------Clé---------------------\n");
+  printf("\n-----------------------Clé----------------------\n");
   // Testing init_pair_keys
   Key *pKey= malloc (sizeof(Key));
   Key *sKey= malloc (sizeof(Key));
