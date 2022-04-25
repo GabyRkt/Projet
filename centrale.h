@@ -25,6 +25,8 @@ typedef struct hashtable{
 //Fonctions supplémentaires
 void affiche_hash(HashTable *hash);
 int equal_key(Key*cle, Key*key);
+void collision_hash(int size);
+int position(HashTable *t, Key *key);
 
 //Liste chaînée de clés
 CellKey* create_cell_key(Key* key);

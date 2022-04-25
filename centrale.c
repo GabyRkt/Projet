@@ -3,7 +3,7 @@
 //Exercice 5
 //Lecture et stockage des données dans des listes chaînées
 
-//Création d'une liste chaînée de clé
+//Création d'une liste chaînée de clés
 CellKey* create_cell_key(Key* key){
   CellKey* cell=(CellKey*)(malloc(sizeof(CellKey)));
   if (cell==NULL){
@@ -23,6 +23,7 @@ void add_key(CellKey** cell, Key* key){
     printf("Erreur dans l'allocation.\n");
     return;
   }
+
   add->next =*cell;
   *cell=add;
 }
@@ -43,6 +44,7 @@ CellKey* read_public_keys(char *nom){
     cle=str_to_key(buffer);
     add_key(&cell,cle);
   }
+  
   fclose(f);
   return cell;
 }
@@ -50,6 +52,7 @@ CellKey* read_public_keys(char *nom){
 //Affichage d'une liste de clé
 void print_list_keys(CellKey* LCK){
   Key *cle=LCK->data;
+  
   while(LCK && cle){
     cle=LCK->data;
     if(cle){
@@ -69,9 +72,10 @@ void delete_cell_key(CellKey *c){
   }
 }
 
-//Suppression d'une liste de clé
+//Suppression d'une liste de clés
 void delete_list_key(CellKey* cell){
   CellKey *tmp;
+  
   while(cell){
     tmp=cell;
     cell=cell->next;
@@ -86,23 +90,25 @@ CellProtected *create_cell_protected(Protected *pr){
     printf("Erreur d'allocation\n");
     return NULL;
   }
+  
   cellp->data=pr;
   cellp->next=NULL;
   return cellp;
 }
 
-//Insertion en tête dans une liste de déclaration
+//Insertion en tête dans une liste de déclarations
 void add_protect(CellProtected** cellp, Protected* p){
   CellProtected* add= create_cell_protected(p);
   if (add==NULL){
     printf("Erreur dans l'allocation.\n");
     return;
   }
+
   add->next =*cellp;
   *cellp=add;
 }
 
-//Retransciption d'une liste de déclaration à partir d'un fichier
+//Retransciption d'une liste de déclarations à partir d'un fichier
 CellProtected* read_protected(char *nom){
   FILE *f=fopen(nom,"r");
   if (f==NULL){
@@ -118,6 +124,7 @@ CellProtected* read_protected(char *nom){
     protect=str_to_protected(buffer);
     add_protect(&cellp,protect);
   }
+  
   fclose(f);
   return cellp;
 }
@@ -133,17 +140,19 @@ void print_list_protect(CellProtected* LPT){
   char *sign;
   
   while(LPT){
-    if(LPT->data==NULL||LPT==NULL){
+    if(protect==NULL){
       return;
     }
+    
     protect=LPT->data;
+
     if(protect){
       key=key_to_str(protect->pKey);
       sign=signature_to_str(protect->sgn);
       printf("%s %s %s\n",key,protect->mess,sign);
+
       free(key);
       free(sign);
-      
     }
     LPT=LPT->next;
   }
@@ -159,9 +168,10 @@ void delete_cell_protect(CellProtected *p){
   }
 }
 
-//Suppression d'une liste de déclaration
+//Suppression d'une liste de déclarations
 void delete_list_protect(CellProtected* cellp){
   CellProtected *tmp;
+  
   while(cellp){
     tmp=cellp;
     cellp=cellp->next;
@@ -207,6 +217,9 @@ void verify_protect(CellProtected** LCP) {
   }  
 }
 
+//Exercice 6
+//Détermination du gagnant de l'élection
+
 //Création d'un élément de la Table de Hashage
 HashCell* create_hashcell(Key* key){
   HashCell *hash=(HashCell*)(malloc(sizeof(HashCell)));
@@ -214,6 +227,7 @@ HashCell* create_hashcell(Key* key){
     printf("Erreur d'allocation\n");
     return NULL;
   }
+  
   hash->key=key;
   hash->val=0;
   return hash;
@@ -229,6 +243,36 @@ int hash_function(Key *key,int size){
   
   int res=(int)(size*(cle*A-(int)(cle*A)));
   return res;
+}
+
+//Visualisation des collisions 
+void collision_hash(int size){
+  int* hash = (int*)(malloc(size*sizeof(int)));
+  Key *pKey = (Key*)(malloc(sizeof(Key)));
+  Key *sKey = (Key*)(malloc(sizeof(Key)));
+
+  //Initialisation à 0
+  for(int i=0; i<size; i++) { 
+    hash[i] = 0; 
+  }
+  
+  //Génération de plusieurs paires de clés
+  for(int i=0; i<size; i++){
+    init_pair_keys(pKey,sKey,3,7);
+    hash[hash_function(pKey,size)]++;
+  }
+
+  //Affichage des cases utilisées
+  for(int i=0; i<size; i++){ 
+    if(i%5==0){
+      printf("\n");
+    }
+    printf("%d: [%d]\t\t",i,hash[i]);  
+  }
+
+  free(hash);
+  free(pKey);
+  free(sKey);
 }
 
 //Egalité entre 2 clé
@@ -250,6 +294,7 @@ int find_position(HashTable *t, Key *key){
   //Recherche de la position trouvée par la fonction de hachage jusqu'à la fin du tableau
   for(int i=0;i<t->size;i++){
     probing=(pos+i)%t->size;
+    
     if(t->tab[probing]){
       if(equal_key(t->tab[probing]->key,key)){
         return probing;
@@ -277,71 +322,6 @@ int position(HashTable *t, Key *key){
 }
 
 //Création d'une table de hashage
-/*HashTable *create_hashtable(CellKey *keys, int size){
-  HashTable* hash=(HashTable*)(malloc(sizeof(HashTable)));
-  if(hash==NULL){
-    printf("Erreur d'allocation\n");
-    return NULL;
-  }
-  
-  HashCell **hash_tab=(HashCell**)(malloc(sizeof(HashCell*)*size));
-  if(hash_tab==NULL){
-    printf("Erreur d'allocation\n");
-    free(hash);
-    return NULL;
-  }
-
-    hash->tab=hash_tab;
-    hash->size=size;
-  
-  //Initialisation des cases de la table de Hashage 
-  for(int i=0;i<size;i++){
-    hash->tab[i]=NULL;
-  }
-
-  int pos_k;
-  int pos;
-  int i=0;
-  HashCell *hsh;
-  Key *key=keys->data;
-  
-  //Insertion des clés publiques dans la table de hashage
-  while(keys){
-    key=keys->data;
-    
-    //Clé publique non nulle
-    if(key){
-      //Recherche de la position de la clé
-      pos_k=hash_function(key,size);
-      pos=(pos_k+i)%size;
-      hsh=hash->tab[pos];
-
-      //Si la table de hashage ne possède plus de case libre
-      if(pos_k==pos && i!=0){
-        printf("Table de Hashage remplie\n\n");
-        return hash;
-      }
-
-      //Si la case est vide
-      if(hsh==NULL){
-        hsh=create_hashcell(keys->data);
-        hash->tab[pos]=hsh;
-        keys=keys->next;
-        i=0;
-      }
-      //Probing linéaire
-      else{
-        i++;
-      }
-    }
-    else{
-      return hash;
-    }
-  }
-  return hash;
-}*/
-
-//Création d'une table de hashage
 HashTable *create_hashtable(CellKey *keys, int size){
   HashTable* hash=(HashTable*)(malloc(sizeof(HashTable)));
   if(hash==NULL){
@@ -349,15 +329,15 @@ HashTable *create_hashtable(CellKey *keys, int size){
     return NULL;
   }
   
-  HashCell **hash_tab=(HashCell**)(malloc(sizeof(HashCell*)*size));
-  if(hash_tab==NULL){
+  HashCell **hsh=(HashCell**)(malloc(sizeof(HashCell*)*size));
+  if(hsh==NULL){
     printf("Erreur d'allocation\n");
     free(hash);
     return NULL;
   }
 
-    hash->tab=hash_tab;
-    hash->size=size;
+  hash->tab=hsh;
+  hash->size=size;
   
   //Initialisation des cases de la table de Hashage 
   for(int i=0;i<size;i++){
@@ -365,7 +345,6 @@ HashTable *create_hashtable(CellKey *keys, int size){
   }
 
   int pos_k;
-  HashCell *hsh;
   Key *key=keys->data;
   
   //Insertion des clés publiques dans la table de hashage
@@ -382,15 +361,9 @@ HashTable *create_hashtable(CellKey *keys, int size){
         return hash;
       }
 
-      hsh=hash->tab[pos_k];
-
-      hsh=create_hashcell(keys->data);
-      hash->tab[pos_k]=hsh;
-      keys=keys->next;
+      hsh[pos_k]=create_hashcell(keys->data);
     }
-    else{
-      return hash;
-    }
+    keys=keys->next;
   }
   return hash;
 }
@@ -420,8 +393,9 @@ void delete_hashtable(HashTable *t){
   for(int i=0;i<t->size;i++){
     hsh=t->tab[i];
     if(hsh){
-      free(hsh);
       //On ne désalloue pas la clé car on l'a désalloué avec delete_list_key ou bien à part
+      //free(hsh->key);
+      free(hsh);
     }
   }
   free(t->tab);
@@ -442,9 +416,9 @@ Key* compute_winner(CellProtected* decl, CellKey* candidates, CellKey* voters, i
   Key *decla_v;
   Key *cand;
 
-  int i=0;
   int nb_vote=0;
   int nb_cand=0;
+
   while(decl){
     //Recherche de la position du voteur
     decla_v= decl->data->pKey;
@@ -456,19 +430,15 @@ Key* compute_winner(CellProtected* decl, CellKey* candidates, CellKey* voters, i
     posC=find_position(Hc,cand);
     hc_pos=Hc->tab[posC];
 
-  i++;
     //Vérififation du droit de vote
     if(equal_key(hv_pos->key,decla_v)){
-      //printf("equal %d\t",i);
+      
       //Vérification du nombre de votes
       if(hv_pos->val==0){
-      //printf("hv_pos %d\t",nb_vote);
-
         (hv_pos->val)++;
+        
         //Vérification du candidat
         if(equal_key(hc_pos->key,cand)){
-          //printf("hc_pos%d \n",nb_vote);
-
           (hc_pos->val)++;
           nb_vote++;
         }
@@ -478,7 +448,7 @@ Key* compute_winner(CellProtected* decl, CellKey* candidates, CellKey* voters, i
     decl=decl->next;
   }
 
-  //Recherche du gagnant des élections
+  //Cellule où se trouve la première clé
   HashCell*gagnant;
   for(int i=0;i<sizeC;i++){
     hc_pos=Hc->tab[i];
@@ -488,6 +458,7 @@ Key* compute_winner(CellProtected* decl, CellKey* candidates, CellKey* voters, i
     }
   }
 
+  //Recherche du gagnant des élections
   for(int i=0;i<sizeC;i++){
     hc_pos=Hc->tab[i];
     if(hc_pos){
@@ -502,7 +473,6 @@ Key* compute_winner(CellProtected* decl, CellKey* candidates, CellKey* voters, i
   Key *victoire =(Key*)(malloc(sizeof(Key)));
   init_key(victoire,gagnant->key->val,gagnant->key->n);
   
-  //affiche_hash(Hv);
   delete_hashtable(Hv);
   delete_hashtable(Hc);
   return victoire;

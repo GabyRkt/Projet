@@ -1,11 +1,4 @@
-#include <stdio.h>
-#include <time.h>
 #include "decentrale.h"
-#include "centrale.h"
-#include "secure.h"
-#include "crypto.h"
-#include <openssl/sha.h>
-
 
 int main(){
 
@@ -89,20 +82,26 @@ int main(){
         break;
       }
 
+      // Q 7.8 - Calcul du temps de hashage
       case 3: {
-        FILE *f2=fopen("hashage1.txt","a");
+        FILE *f2=fopen("hashage.txt","w");
         int d=4;
         unsigned char *nom="Test";
         CellProtected *decla=read_protected("declarations.txt");
         Block* b=creer_block(decla->data->pKey,decla,nom);
-        //for(int i=0; i<d;i++){
+
+        for(int i=0; i<d;i++){
           ti= clock();
-          compute_proof_of_work(b,d);   
+          compute_proof_of_work(b,i);   
           tf= clock();
           temps= (float)(tf - ti)/CLOCKS_PER_SEC;
-          fprintf(f2, "%d %f\n",d,temps);
-        //}
+          fprintf(f2, "%d %f\n",i,temps);
+        }
+
         fclose(f2);
+        free(b->hash);
+        free(b);
+        delete_list_protect(decla);
         break; 
       }
     }

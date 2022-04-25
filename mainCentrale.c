@@ -9,8 +9,8 @@ int main(){
   Key *sKey= malloc (sizeof(Key));
   init_pair_keys(pKey, sKey, 3,7);
   
-  printf("pKey: (%lx, %lx) \n",pKey->val, pKey->n);
-  printf("sKey: (%lx, %lx) \n",sKey->val, sKey->n);
+  printf("pKey: "); affiche_key(pKey);
+  printf("sKey: "); affiche_key(sKey);
   
   CellKey* cell= create_cell_key(NULL);
   add_key(&cell, sKey);
@@ -32,8 +32,8 @@ int main(){
   Key *sk= malloc (sizeof(Key));
   init_pair_keys(pk, sk, 3,7);
   
-  printf("pKey: (%lx, %lx) \n",pk->val, pk->n);
-  printf("sKey: (%lx, %lx) \n",sk->val, sk->n);
+  printf("pKey: "); affiche_key(pk);
+  printf("sKey: "); affiche_key(sk);
 
   char *mess=key_to_str(pk);
   Signature* sgn=sign(mess,sk);
@@ -48,7 +48,6 @@ int main(){
   add_protect(&Pcell,pr);
   cp=protected_to_str(Pcell->data);
 
-  
   printf("\n-----------------Affichage Déclaration-----------------\n");
   //Création d'un fichier possédant des signatures invalides
   CellProtected* Rcell= read_protected("declarationTest.txt");
@@ -64,22 +63,27 @@ int main(){
   delete_list_protect(Pcell);  
   free(cp);
   free(sk);
+
   printf("\n------------------------HashCell-----------------------\n");
+  //Visualisation des collisions 
+  collision_hash(50);
+  
   Key *pkh= malloc (sizeof(Key));
   Key *skh= malloc (sizeof(Key));
   init_pair_keys(pkh, skh, 3,7);
-  printf("pKey: (%lx, %lx) \n",pkh->val, pkh->n);
+
+  printf("\n\npKey: "); affiche_key(pkh);
   
   HashCell *cellh=create_hashcell(pkh);
-  printf("cellh: (%lx, %lx) val:%d\n",cellh->key->val, cellh->key->n,cellh->val);
+  printf("cellh: val:%d clé: ",cellh->val); affiche_key(cellh->key);
   free(cellh);
 
   printf("\n-----------------------HashTable-----------------------\n");
   int sizeV=20;
   int sizeC=15;
-  generate_random_data(20,15);
+  generate_random_data(sizeV,sizeC);
   CellKey* vote =read_public_keys("keys.txt");
-  HashTable *hash=create_hashtable(vote,sizeV);
+  HashTable *hash=create_hashtable(vote,sizeV*2);
   affiche_hash(hash);
   
   printf("\n---------------------Recherche clé---------------------\n");
